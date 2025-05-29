@@ -14,6 +14,7 @@ export default function SizeDeviationCalculator() {
   const [showResults, setShowResults] = useState(false)
   const [rows, setRows] = useState(4)
   const [cols, setCols] = useState(8)
+  const [isResultTransposed, setIsResultTransposed] = useState(false)
 
   // 초기 테이블 데이터 생성
   useEffect(() => {
@@ -137,11 +138,24 @@ export default function SizeDeviationCalculator() {
       return
     }
 
-    const worksheet = XLSX.utils.aoa_to_sheet([
-      ['POSITION', ...headers],
-      ...results.map((row, i) => [positions[i], ...row])
-    ])
+    let exportData
+    if (isResultTransposed) {
+      // 뒤집힌 상태로 내보내기
+      exportData = [
+        ['SIZE', ...positions],
+        ...headers.map((header, i) => 
+          [header, ...positions.map((_, j) => results[j][i])]
+        )
+      ]
+    } else {
+      // 기존 상태로 내보내기
+      exportData = [
+        ['POSITION', ...headers],
+        ...results.map((row, i) => [positions[i], ...row])
+      ]
+    }
 
+    const worksheet = XLSX.utils.aoa_to_sheet(exportData)
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Size Deviations')
     XLSX.writeFile(workbook, 'size_deviation_table.xlsx')
@@ -166,7 +180,7 @@ export default function SizeDeviationCalculator() {
         h1 { text-align: center; color: #333; margin-bottom: 30px; }
         table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background-color: #4CAF50; color: white; font-weight: bold; }
+        th { background-color: #4CAF50; color: black; font-weight: bold; }
         .position-header { background-color: #e8f5e8; font-weight: bold; width: 180px; text-align: left; padding-left: 15px; }
         .size-header { background-color: #f0f8ff; font-weight: bold; }
         .negative { color: red; font-weight: bold; }
@@ -179,12 +193,18 @@ export default function SizeDeviationCalculator() {
         <table>
             <thead>
                 <tr>
-                    <th class="position-header">POSITION</th>
+                    <th class="position-header">${isResultTransposed ? 'SIZE' : 'POSITION'}</th>
     `
 
-    headers.forEach(header => {
-      htmlContent += `<th class="size-header">${header}</th>`
-    })
+    if (isResultTransposed) {
+      positions.forEach(pos => {
+        htmlContent += `<th class="size-header">${pos}</th>`
+      })
+    } else {
+      headers.forEach((header, index) => {
+        htmlContent += `<th class="size-header">${header}</th>`
+      })
+    }
 
     htmlContent += `
                 </tr>
@@ -192,22 +212,36 @@ export default function SizeDeviationCalculator() {
             <tbody>
     `
 
-    results.forEach((row, i) => {
-      htmlContent += `<tr><td class="position-header">${positions[i]}</td>`
-      
-      row.forEach((value, j) => {
-        let className = ''
-        if (j === referenceColIndex) {
-          className = 'zero'
-        } else if (value < 0) {
-          className = 'negative'
-        }
-        
-        htmlContent += `<td class="${className}">${value}</td>`
+    if (isResultTransposed) {
+      headers.forEach((header, i) => {
+        htmlContent += `<tr><td class="position-header">${header}</td>`
+        positions.forEach((_, j) => {
+          const value = results[j][i]
+          let className = ''
+          if (i === referenceColIndex) {
+            className = 'zero'
+          } else if (value < 0) {
+            className = 'negative'
+          }
+          htmlContent += `<td class="${className}">${typeof value === 'number' ? value.toFixed(1) : value}</td>`
+        })
+        htmlContent += `</tr>`
       })
-      
-      htmlContent += `</tr>`
-    })
+    } else {
+      results.forEach((row, i) => {
+        htmlContent += `<tr><td class="position-header">${positions[i]}</td>`
+        row.forEach((value, j) => {
+          let className = ''
+          if (j === referenceColIndex) {
+            className = 'zero'
+          } else if (value < 0) {
+            className = 'negative'
+          }
+          htmlContent += `<td class="${className}">${typeof value === 'number' ? value.toFixed(1) : value}</td>`
+        })
+        htmlContent += `</tr>`
+      })
+    }
 
     htmlContent += `
             </tbody>
@@ -232,6 +266,11 @@ export default function SizeDeviationCalculator() {
     document.body.appendChild(element)
     element.click()
     document.body.removeChild(element)
+  }
+
+  // 결과 테이블 전치 토글 함수
+  const toggleResultTranspose = () => {
+    setIsResultTransposed(!isResultTransposed)
   }
 
   return (
@@ -436,60 +475,98 @@ export default function SizeDeviationCalculator() {
         {/* 결과 표시 */}
         {showResults && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-center text-gray-800">
-              📊 계산 결과
-            </h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-center text-gray-800">
+                📊 계산 결과
+              </h2>
+              <button
+                onClick={toggleResultTranspose}
+                className="bg-purple-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-purple-600 transition-colors"
+              >
+                행/열 뒤집기 🔄
+              </button>
+            </div>
             
             <div className="overflow-x-auto bg-white rounded-xl shadow-lg">
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
-                    <th className="bg-green-500 text-white p-3 border border-gray-300 font-bold w-48">
-                      POSITION
+                    <th className="bg-green-500 text-black p-3 border border-gray-300 font-bold w-48">
+                      {isResultTransposed ? 'SIZE' : 'POSITION'}
                     </th>
-                    {headers.map((header, index) => (
-                      <th
-                        key={index}
-                        className={`p-3 border border-gray-300 font-bold ${
-                          index === referenceColIndex
-                            ? 'bg-yellow-200 text-yellow-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}
-                      >
-                        {header}
-                      </th>
-                    ))}
+                    {isResultTransposed 
+                      ? positions.map((pos, index) => (
+                          <th
+                            key={index}
+                            className="p-3 border border-gray-300 font-bold bg-blue-100 text-black"
+                          >
+                            {pos}
+                          </th>
+                        ))
+                      : headers.map((header, index) => (
+                          <th
+                            key={index}
+                            className={`p-3 border border-gray-300 font-bold ${
+                              index === referenceColIndex
+                                ? 'bg-yellow-200 text-black'
+                                : 'bg-blue-100 text-black'
+                            }`}
+                          >
+                            {header}
+                          </th>
+                        ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((row, i) => (
-                    <tr key={i}>
-                      <td
-                        className={`bg-green-100 font-bold p-3 border border-gray-300 text-left ${
-                          halfFlags[i] ? 'bg-purple-200' : ''
-                        }`}
-                        title="1/2 처리됨"
-                      >
-                        <span className="text-gray-800">
-                          {positions[i]} {halfFlags[i] && '(1/2)'}
-                        </span>
-                      </td>
-                      {row.map((value, j) => (
-                        <td
-                          key={j}
-                          className={`p-3 border border-gray-300 text-center ${
-                            j === referenceColIndex
-                              ? 'bg-yellow-100 font-bold'
-                              : value < 0
-                              ? 'text-red-600 font-bold'
-                              : 'text-gray-800'
-                          }`}
-                        >
-                          {typeof value === 'number' ? value.toFixed(1) : value}
-                        </td>
+                  {isResultTransposed
+                    ? headers.map((header, i) => (
+                        <tr key={i}>
+                          <td className="bg-green-100 font-bold p-3 border border-gray-300 text-black">
+                            {header}
+                          </td>
+                          {positions.map((_, j) => (
+                            <td
+                              key={j}
+                              className={`p-3 border border-gray-300 text-center ${
+                                i === referenceColIndex
+                                  ? 'bg-yellow-100 font-bold text-black'
+                                  : results[j][i] < 0
+                                  ? 'text-red-600 font-bold'
+                                  : 'text-black'
+                              }`}
+                            >
+                              {typeof results[j][i] === 'number' ? results[j][i].toFixed(1) : results[j][i]}
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    : results.map((row, i) => (
+                        <tr key={i}>
+                          <td
+                            className={`font-bold p-3 border border-gray-300 text-black ${
+                              halfFlags[i] ? 'bg-purple-200' : 'bg-green-100'
+                            }`}
+                          >
+                            <span>
+                              {positions[i]} {halfFlags[i] && '(1/2)'}
+                            </span>
+                          </td>
+                          {row.map((value, j) => (
+                            <td
+                              key={j}
+                              className={`p-3 border border-gray-300 text-center ${
+                                j === referenceColIndex
+                                  ? 'bg-yellow-100 font-bold text-black'
+                                  : value < 0
+                                  ? 'text-red-600 font-bold'
+                                  : 'text-black'
+                              }`}
+                            >
+                              {typeof value === 'number' ? value.toFixed(1) : value}
+                            </td>
+                          ))}
+                        </tr>
                       ))}
-                    </tr>
-                  ))}
                 </tbody>
               </table>
             </div>
