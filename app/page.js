@@ -15,6 +15,7 @@ export default function SizeDeviationCalculator() {
   const [rows, setRows] = useState(4)
   const [cols, setCols] = useState(8)
   const [isResultTransposed, setIsResultTransposed] = useState(false)
+  const [positionHeader, setPositionHeader] = useState('POSITION')
 
   // 초기 테이블 데이터 생성
   useEffect(() => {
@@ -138,24 +139,11 @@ export default function SizeDeviationCalculator() {
       return
     }
 
-    let exportData
-    if (isResultTransposed) {
-      // 뒤집힌 상태로 내보내기
-      exportData = [
-        ['SIZE', ...positions],
-        ...headers.map((header, i) => 
-          [header, ...positions.map((_, j) => results[j][i])]
-        )
-      ]
-    } else {
-      // 기존 상태로 내보내기
-      exportData = [
-        ['POSITION', ...headers],
-        ...results.map((row, i) => [positions[i], ...row])
-      ]
-    }
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      ['POSITION', ...headers],
+      ...results.map((row, i) => [positions[i], ...row])
+    ])
 
-    const worksheet = XLSX.utils.aoa_to_sheet(exportData)
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Size Deviations')
     XLSX.writeFile(workbook, 'size_deviation_table.xlsx')
@@ -180,7 +168,7 @@ export default function SizeDeviationCalculator() {
         h1 { text-align: center; color: #333; margin-bottom: 30px; }
         table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background-color: #4CAF50; color: black; font-weight: bold; }
+        th { background-color: #4CAF50; color: white; font-weight: bold; }
         .position-header { background-color: #e8f5e8; font-weight: bold; width: 180px; text-align: left; padding-left: 15px; }
         .size-header { background-color: #f0f8ff; font-weight: bold; }
         .negative { color: red; font-weight: bold; }
@@ -193,18 +181,12 @@ export default function SizeDeviationCalculator() {
         <table>
             <thead>
                 <tr>
-                    <th class="position-header">${isResultTransposed ? 'SIZE' : 'POSITION'}</th>
+                    <th class="position-header">POSITION</th>
     `
 
-    if (isResultTransposed) {
-      positions.forEach(pos => {
-        htmlContent += `<th class="size-header">${pos}</th>`
-      })
-    } else {
-      headers.forEach((header, index) => {
-        htmlContent += `<th class="size-header">${header}</th>`
-      })
-    }
+    headers.forEach(header => {
+      htmlContent += `<th class="size-header">${header}</th>`
+    })
 
     htmlContent += `
                 </tr>
@@ -212,36 +194,22 @@ export default function SizeDeviationCalculator() {
             <tbody>
     `
 
-    if (isResultTransposed) {
-      headers.forEach((header, i) => {
-        htmlContent += `<tr><td class="position-header">${header}</td>`
-        positions.forEach((_, j) => {
-          const value = results[j][i]
-          let className = ''
-          if (i === referenceColIndex) {
-            className = 'zero'
-          } else if (value < 0) {
-            className = 'negative'
-          }
-          htmlContent += `<td class="${className}">${typeof value === 'number' ? value.toFixed(1) : value}</td>`
-        })
-        htmlContent += `</tr>`
+    results.forEach((row, i) => {
+      htmlContent += `<tr><td class="position-header">${positions[i]}</td>`
+      
+      row.forEach((value, j) => {
+        let className = ''
+        if (j === referenceColIndex) {
+          className = 'zero'
+        } else if (value < 0) {
+          className = 'negative'
+        }
+        
+        htmlContent += `<td class="${className}">${value}</td>`
       })
-    } else {
-      results.forEach((row, i) => {
-        htmlContent += `<tr><td class="position-header">${positions[i]}</td>`
-        row.forEach((value, j) => {
-          let className = ''
-          if (j === referenceColIndex) {
-            className = 'zero'
-          } else if (value < 0) {
-            className = 'negative'
-          }
-          htmlContent += `<td class="${className}">${typeof value === 'number' ? value.toFixed(1) : value}</td>`
-        })
-        htmlContent += `</tr>`
-      })
-    }
+      
+      htmlContent += `</tr>`
+    })
 
     htmlContent += `
             </tbody>
@@ -273,6 +241,54 @@ export default function SizeDeviationCalculator() {
     setIsResultTransposed(!isResultTransposed)
   }
 
+  // 클립보드 붙여넣기 처리 함수
+  const handlePaste = (e) => {
+    e.preventDefault()
+    
+    // 클립보드 데이터 가져오기
+    const clipboardData = e.clipboardData.getData('text')
+    
+    // 줄바꿈으로 행 분리하고 빈 행 제거
+    const rows = clipboardData.split(/\r\n|\n|\r/).filter(row => row.trim())
+    
+    // 탭이나 여러 개의 공백으로 열 분리
+    const pastedData = rows.map(row => 
+      row.split(/\t/).map(cell => cell.trim())
+    )
+    
+    // 첫 번째 행이 헤더
+    if (pastedData.length > 0) {
+      // 헤더의 첫 번째 셀을 POSITION 헤더로 설정
+      if (pastedData[0][0]) {
+        setPositionHeader(pastedData[0][0])
+      }
+      
+      // 나머지 헤더들 설정
+      if (pastedData[0].length > 1) {
+        const newHeaders = pastedData[0].slice(1)
+        setHeaders(newHeaders)
+      }
+      
+      // 데이터 행 설정
+      if (pastedData.length > 1) {
+        const newPositions = []
+        const newTableData = []
+        
+        // 첫 번째 행(헤더)를 제외한 나머지 행들 처리
+        for (let i = 1; i < pastedData.length; i++) {
+          const row = pastedData[i]
+          if (row.length > 0) {
+            newPositions.push(row[0] || '')  // 첫 번째 열은 positions
+            newTableData.push(row.slice(1))  // 나머지 열은 데이터
+          }
+        }
+        
+        setPositions(newPositions)
+        setTableData(newTableData)
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 p-4">
       <div className="max-w-7xl mx-auto bg-white rounded-3xl p-8 shadow-2xl">
@@ -281,7 +297,7 @@ export default function SizeDeviationCalculator() {
         </h1>
 
         {/* 설정 패널 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div className="bg-gray-50 p-6 rounded-xl shadow-lg border-2 border-blue-200">
             <h3 className="text-lg font-bold text-gray-800 mb-4 border-b-2 border-blue-400 pb-2">
               📐 표 크기 설정
@@ -354,35 +370,21 @@ export default function SizeDeviationCalculator() {
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="bg-gray-50 p-6 rounded-xl shadow-lg border-2 border-purple-200">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 border-b-2 border-purple-400 pb-2">
-              ⚡ 계산 실행
-            </h3>
+        {/* 데이터 입력 표 섹션 */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-800">
+              📊 데이터 입력 표
+            </h2>
             <button
               onClick={calculateDeviations}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white py-4 px-6 rounded-lg font-bold hover:from-purple-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 px-6 rounded-lg font-bold hover:from-purple-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105"
             >
-              편차 계산하기
+              편차 계산하기 ⚡
             </button>
           </div>
-        </div>
-
-        {/* 사용 방법 안내 */}
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8 rounded-lg">
-          <h4 className="text-blue-800 font-bold mb-2">📋 사용 방법</h4>
-          <ul className="text-blue-700 text-sm space-y-1">
-            <li>• <strong>데이터 입력:</strong> 아래 표에서 직접 셀을 클릭하여 값을 입력하세요</li>
-            <li>• <strong>헤더 편집:</strong> 사이즈 이름과 위치 이름을 클릭하여 편집하세요</li>
-            <li>• <strong>인접 편차:</strong> 각 열은 바로 옆 열과의 절대 차이를 계산합니다</li>
-          </ul>
-        </div>
-
-        {/* 데이터 입력 표 */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
-            📊 데이터 입력 표
-          </h2>
           
           <div className="bg-blue-50 border border-blue-200 p-4 mb-4 rounded-lg">
             <h4 className="text-blue-800 font-bold mb-2">💡 입력 표 사용법</h4>
@@ -393,20 +395,29 @@ export default function SizeDeviationCalculator() {
             </ul>
           </div>
           
-          <div className="overflow-x-auto bg-white rounded-xl shadow-lg">
+          <div 
+            className="overflow-x-auto bg-white rounded-xl shadow-lg"
+            onPaste={handlePaste}
+            tabIndex="0" // 포커스 가능하도록
+          >
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  <th className="bg-green-500 text-white p-3 border border-gray-300 font-bold w-48">
-                    POSITION
+                  <th className="bg-green-500 text-black p-3 border border-gray-300 font-bold w-48">
+                    <input
+                      type="text"
+                      value={positionHeader}
+                      onChange={(e) => setPositionHeader(e.target.value)}
+                      className="w-full text-center bg-transparent border-none outline-none font-bold"
+                    />
                   </th>
                   {headers.map((header, index) => (
                     <th
                       key={index}
                       className={`p-2 border border-gray-300 font-bold ${
                         index === referenceColIndex
-                          ? 'bg-yellow-200 text-yellow-800'
-                          : 'bg-blue-100 text-blue-800'
+                          ? 'bg-yellow-200 text-black'
+                          : 'bg-blue-100 text-black'
                       }`}
                     >
                       <input
