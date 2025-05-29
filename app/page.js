@@ -335,9 +335,6 @@ export default function SizeDeviationCalculator() {
           <ul className="text-blue-700 text-sm space-y-1">
             <li>• <strong>데이터 입력:</strong> 아래 표에서 직접 셀을 클릭하여 값을 입력하세요</li>
             <li>• <strong>헤더 편집:</strong> 사이즈 이름과 위치 이름을 클릭하여 편집하세요</li>
-            <li>• <strong>기준점 설정:</strong> 기준이 될 열의 위치와 기준값을 설정하세요</li>
-            <li>• <strong>빨간글씨:</strong> 결과 테이블에서 음수로 만들 셀을 클릭하세요</li>
-            <li>• <strong>1/2 처리:</strong> 해당 행 전체에 1/2를 곱하려면 행 이름을 더블클릭하세요</li>
             <li>• <strong>인접 편차:</strong> 각 열은 바로 옆 열과의 절대 차이를 계산합니다</li>
           </ul>
         </div>
