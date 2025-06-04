@@ -1,158 +1,226 @@
-"use client"
-import { useState, useEffect } from 'react'
-import * as XLSX from 'xlsx'
+"use client";
+import { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 
 export default function SizeDeviationCalculator() {
-  const [tableData, setTableData] = useState([])
-  const [headers, setHeaders] = useState(['120', '130', '140', 'S', 'M', 'L', 'XL', 'XXL'])
-  const [positions, setPositions] = useState(['BODY LENGTH', 'CHEST WIDTH', 'SHOULDER WIDTH', 'SLEEVE LENGTH'])
-  const [referenceColIndex, setReferenceColIndex] = useState(3)
-  const [referenceValue, setReferenceValue] = useState(0)
-  const [negativeFlags, setNegativeFlags] = useState({})
-  const [halfFlags, setHalfFlags] = useState({})
-  const [results, setResults] = useState([])
-  const [showResults, setShowResults] = useState(false)
-  const [rows, setRows] = useState(4)
-  const [cols, setCols] = useState(8)
-  const [isResultTransposed, setIsResultTransposed] = useState(false)
-  const [positionHeader, setPositionHeader] = useState('POSITION')
+  const [tableData, setTableData] = useState([]);
+  const [headers, setHeaders] = useState([
+    "120",
+    "130",
+    "140",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+  ]);
+  const [positions, setPositions] = useState([
+    "BODY LENGTH",
+    "CHEST WIDTH",
+    "SHOULDER WIDTH",
+    "SLEEVE LENGTH",
+  ]);
+  const [referenceColIndex, setReferenceColIndex] = useState(3);
+  const [referenceRowIndex, setReferenceRowIndex] = useState(1);
+  const [referenceValue, setReferenceValue] = useState(0);
+  const [calculationMode, setCalculationMode] = useState("column"); // 'column' 또는 'row'
+  const [negativeFlags, setNegativeFlags] = useState({});
+  const [halfFlags, setHalfFlags] = useState({});
+  const [results, setResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+  const [rows, setRows] = useState(4);
+  const [cols, setCols] = useState(8);
+  const [isResultTransposed, setIsResultTransposed] = useState(false);
+  const [isInputTransposed, setIsInputTransposed] = useState(false);
+  const [positionHeader, setPositionHeader] = useState("POSITION");
+  const [focusedCell, setFocusedCell] = useState({
+    row: 0,
+    col: 0,
+    type: "data",
+  }); // 'data', 'header', 'position'
 
   // 초기 테이블 데이터 생성
   useEffect(() => {
-    const initialData = Array(rows).fill(null).map(() => Array(cols).fill(''))
+    const initialData = Array(rows)
+      .fill(null)
+      .map(() => Array(cols).fill(""));
     // 예시 데이터
     if (initialData.length >= 4) {
-      initialData[0] = ['51', '53', '57', '60', '63', '65', '68', '71']
-      initialData[1] = ['42', '45', '48', '51', '54', '57', '61', '69']
-      initialData[2] = ['40', '42', '44', '46', '48', '50', '52', '54']
-      initialData[3] = ['58', '60', '62', '64', '66', '68', '70', '72']
+      initialData[0] = ["51", "53", "57", "60", "63", "65", "68", "71"];
+      initialData[1] = ["42", "45", "48", "51", "54", "57", "61", "69"];
+      initialData[2] = ["40", "42", "44", "46", "48", "50", "52", "54"];
+      initialData[3] = ["58", "60", "62", "64", "66", "68", "70", "72"];
     }
-    setTableData(initialData)
-  }, [rows, cols])
+    setTableData(initialData);
+  }, [rows, cols]);
 
   const updateTableSize = () => {
-    const newData = Array(rows).fill(null).map((_, i) => {
-      const row = Array(cols).fill(0)
-      if (tableData[i]) {
-        for (let j = 0; j < Math.min(cols, tableData[i].length); j++) {
-          row[j] = tableData[i][j] || 0
+    const newData = Array(rows)
+      .fill(null)
+      .map((_, i) => {
+        const row = Array(cols).fill(0);
+        if (tableData[i]) {
+          for (let j = 0; j < Math.min(cols, tableData[i].length); j++) {
+            row[j] = tableData[i][j] || 0;
+          }
         }
-      }
-      return row
-    })
-    setTableData(newData)
+        return row;
+      });
+    setTableData(newData);
 
-    const newHeaders = Array(cols).fill(null).map((_, i) => 
-      headers[i] || `열${i + 1}`
-    )
-    setHeaders(newHeaders)
+    const newHeaders = Array(cols)
+      .fill(null)
+      .map((_, i) => headers[i] || `열${i + 1}`);
+    setHeaders(newHeaders);
 
-    const newPositions = Array(rows).fill(null).map((_, i) => 
-      positions[i] || `위치${i + 1}`
-    )
-    setPositions(newPositions)
-  }
+    const newPositions = Array(rows)
+      .fill(null)
+      .map((_, i) => positions[i] || `위치${i + 1}`);
+    setPositions(newPositions);
+  };
 
   const updateCell = (row, col, value) => {
-    const newData = [...tableData]
-    newData[row] = [...newData[row]]
-    newData[row][col] = value
-    setTableData(newData)
-  }
+    const newData = [...tableData];
+    newData[row] = [...newData[row]];
+    newData[row][col] = value;
+    setTableData(newData);
+  };
 
   const updateHeader = (index, value) => {
-    const newHeaders = [...headers]
-    newHeaders[index] = value
-    setHeaders(newHeaders)
-  }
+    const newHeaders = [...headers];
+    newHeaders[index] = value;
+    setHeaders(newHeaders);
+  };
 
   const updatePosition = (index, value) => {
-    const newPositions = [...positions]
-    newPositions[index] = value
-    setPositions(newPositions)
-  }
+    const newPositions = [...positions];
+    newPositions[index] = value;
+    setPositions(newPositions);
+  };
 
   const calculateDeviations = () => {
-    if (!tableData.length) return
+    if (!tableData.length) return;
 
-    const deviations = []
+    const deviations = [];
 
-    for (let i = 0; i < tableData.length; i++) {
-      const rowData = tableData[i].map(val => val === '' ? 0 : parseFloat(val) || 0)
-      const deviationRow = Array(rowData.length).fill(0)
+    if (calculationMode === "column") {
+      // 기존 열 기준 계산 (좌우 차이)
+      for (let i = 0; i < tableData.length; i++) {
+        const rowData = tableData[i].map((val) =>
+          val === "" ? 0 : parseFloat(val) || 0
+        );
+        const deviationRow = Array(rowData.length).fill(0);
 
-      // 기준점을 0으로 설정
-      deviationRow[referenceColIndex] = referenceValue
+        // 기준점을 0으로 설정
+        deviationRow[referenceColIndex] = referenceValue;
 
-      // 각 열에서 인접한 열과의 절대 차이 계산
-      for (let j = 0; j < rowData.length; j++) {
-        if (j === referenceColIndex) {
-          deviationRow[j] = referenceValue
-        } else if (j < referenceColIndex) {
-          // 기준점 왼쪽: 현재 열과 오른쪽 인접 열의 차이
-          deviationRow[j] = Math.abs(rowData[j + 1] - rowData[j])
-        } else {
-          // 기준점 오른쪽: 현재 열과 왼쪽 인접 열의 차이
-          deviationRow[j] = Math.abs(rowData[j] - rowData[j - 1])
+        // 각 열에서 인접한 열과의 절대 차이 계산
+        for (let j = 0; j < rowData.length; j++) {
+          if (j === referenceColIndex) {
+            deviationRow[j] = referenceValue;
+          } else if (j < referenceColIndex) {
+            // 기준점 왼쪽: 현재 열과 오른쪽 인접 열의 차이
+            deviationRow[j] = Math.abs(rowData[j + 1] - rowData[j]);
+          } else {
+            // 기준점 오른쪽: 현재 열과 왼쪽 인접 열의 차이
+            deviationRow[j] = Math.abs(rowData[j] - rowData[j - 1]);
+          }
         }
-      }
 
-      // 1/2 처리
-      if (halfFlags[i]) {
+        // 1/2 처리
+        if (halfFlags[i]) {
+          for (let j = 0; j < deviationRow.length; j++) {
+            deviationRow[j] = deviationRow[j] / 2;
+          }
+        }
+
+        // 음수 처리
         for (let j = 0; j < deviationRow.length; j++) {
-          deviationRow[j] = deviationRow[j] / 2
+          if (negativeFlags[`${i}-${j}`] && j !== referenceColIndex) {
+            deviationRow[j] = -Math.abs(deviationRow[j]);
+          }
         }
-      }
 
-      // 음수 처리
-      for (let j = 0; j < deviationRow.length; j++) {
-        if (negativeFlags[`${i}-${j}`] && j !== referenceColIndex) {
-          deviationRow[j] = -Math.abs(deviationRow[j])
+        deviations.push(deviationRow);
+      }
+    } else {
+      // 새로운 행 기준 계산 (위아래 차이)
+      for (let i = 0; i < tableData.length; i++) {
+        const deviationRow = Array(tableData[i].length).fill(0);
+
+        for (let j = 0; j < tableData[i].length; j++) {
+          if (i === referenceRowIndex) {
+            deviationRow[j] = referenceValue;
+          } else if (i < referenceRowIndex) {
+            // 기준점 위쪽: 현재 행과 아래쪽 인접 행의 차이
+            const currentValue = parseFloat(tableData[i][j]) || 0;
+            const belowValue = parseFloat(tableData[i + 1][j]) || 0;
+            deviationRow[j] = Math.abs(belowValue - currentValue);
+          } else {
+            // 기준점 아래쪽: 현재 행과 위쪽 인접 행의 차이
+            const currentValue = parseFloat(tableData[i][j]) || 0;
+            const aboveValue = parseFloat(tableData[i - 1][j]) || 0;
+            deviationRow[j] = Math.abs(currentValue - aboveValue);
+          }
         }
-      }
 
-      deviations.push(deviationRow)
+        // 1/2 처리
+        if (halfFlags[i]) {
+          for (let j = 0; j < deviationRow.length; j++) {
+            deviationRow[j] = deviationRow[j] / 2;
+          }
+        }
+
+        // 음수 처리
+        for (let j = 0; j < deviationRow.length; j++) {
+          if (negativeFlags[`${i}-${j}`] && i !== referenceRowIndex) {
+            deviationRow[j] = -Math.abs(deviationRow[j]);
+          }
+        }
+
+        deviations.push(deviationRow);
+      }
     }
 
-    setResults(deviations)
-    setShowResults(true)
-  }
+    setResults(deviations);
+    setShowResults(true);
+  };
 
   const toggleNegative = (row, col) => {
-    const key = `${row}-${col}`
-    setNegativeFlags(prev => ({
+    const key = `${row}-${col}`;
+    setNegativeFlags((prev) => ({
       ...prev,
-      [key]: !prev[key]
-    }))
-  }
+      [key]: !prev[key],
+    }));
+  };
 
   const toggleHalf = (row) => {
-    setHalfFlags(prev => ({
+    setHalfFlags((prev) => ({
       ...prev,
-      [row]: !prev[row]
-    }))
-  }
+      [row]: !prev[row],
+    }));
+  };
 
   const exportToExcel = () => {
     if (!results.length) {
-      alert('먼저 계산을 실행해주세요.')
-      return
+      alert("먼저 계산을 실행해주세요.");
+      return;
     }
 
     const worksheet = XLSX.utils.aoa_to_sheet([
-      ['POSITION', ...headers],
-      ...results.map((row, i) => [positions[i], ...row])
-    ])
+      ["POSITION", ...headers],
+      ...results.map((row, i) => [positions[i], ...row]),
+    ]);
 
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Size Deviations')
-    XLSX.writeFile(workbook, 'size_deviation_table.xlsx')
-  }
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Size Deviations");
+    XLSX.writeFile(workbook, "size_deviation_table.xlsx");
+  };
 
   const exportToHTML = () => {
     if (!results.length) {
-      alert('먼저 계산을 실행해주세요.')
-      return
+      alert("먼저 계산을 실행해주세요.");
+      return;
     }
 
     let htmlContent = `
@@ -182,34 +250,34 @@ export default function SizeDeviationCalculator() {
             <thead>
                 <tr>
                     <th class="position-header">POSITION</th>
-    `
+    `;
 
-    headers.forEach(header => {
-      htmlContent += `<th class="size-header">${header}</th>`
-    })
+    headers.forEach((header) => {
+      htmlContent += `<th class="size-header">${header}</th>`;
+    });
 
     htmlContent += `
                 </tr>
             </thead>
             <tbody>
-    `
+    `;
 
     results.forEach((row, i) => {
-      htmlContent += `<tr><td class="position-header">${positions[i]}</td>`
-      
+      htmlContent += `<tr><td class="position-header">${positions[i]}</td>`;
+
       row.forEach((value, j) => {
-        let className = ''
+        let className = "";
         if (j === referenceColIndex) {
-          className = 'zero'
+          className = "zero";
         } else if (value < 0) {
-          className = 'negative'
+          className = "negative";
         }
-        
-        htmlContent += `<td class="${className}">${value}</td>`
-      })
-      
-      htmlContent += `</tr>`
-    })
+
+        htmlContent += `<td class="${className}">${value}</td>`;
+      });
+
+      htmlContent += `</tr>`;
+    });
 
     htmlContent += `
             </tbody>
@@ -225,69 +293,134 @@ export default function SizeDeviationCalculator() {
         </div>
     </div>
 </body>
-</html>`
+</html>`;
 
-    const element = document.createElement('a')
-    const file = new Blob([htmlContent], { type: 'text/html' })
-    element.href = URL.createObjectURL(file)
-    element.download = 'size_deviation_table.html'
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
-  }
+    const element = document.createElement("a");
+    const file = new Blob([htmlContent], { type: "text/html" });
+    element.href = URL.createObjectURL(file);
+    element.download = "size_deviation_table.html";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
 
   // 결과 테이블 전치 토글 함수
   const toggleResultTranspose = () => {
-    setIsResultTransposed(!isResultTransposed)
-  }
+    setIsResultTransposed(!isResultTransposed);
+  };
+
+  // 입력 테이블 전치 토글 함수
+  const toggleInputTranspose = () => {
+    setIsInputTransposed(!isInputTransposed);
+  };
 
   // 클립보드 붙여넣기 처리 함수
   const handlePaste = (e) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     // 클립보드 데이터 가져오기
-    const clipboardData = e.clipboardData.getData('text')
-    
+    const clipboardData = e.clipboardData.getData("text");
+
     // 줄바꿈으로 행 분리하고 빈 행 제거
-    const rows = clipboardData.split(/\r\n|\n|\r/).filter(row => row.trim())
-    
+    const rows = clipboardData.split(/\r\n|\n|\r/).filter((row) => row.trim());
+
     // 탭이나 여러 개의 공백으로 열 분리
-    const pastedData = rows.map(row => 
-      row.split(/\t/).map(cell => cell.trim())
-    )
-    
-    // 첫 번째 행이 헤더
-    if (pastedData.length > 0) {
+    const pastedData = rows.map((row) =>
+      row.split(/\t/).map((cell) => cell.trim())
+    );
+
+    if (pastedData.length === 0) return;
+
+    // 전체 테이블 붙여넣기 모드 (첫 번째 행이 헤더인 경우)
+    if (
+      focusedCell.row === 0 &&
+      focusedCell.col === 0 &&
+      focusedCell.type === "data" &&
+      pastedData.length > 1 &&
+      pastedData[0].length > 1
+    ) {
+      // 기존 전체 테이블 덮어쓰기 로직
       // 헤더의 첫 번째 셀을 POSITION 헤더로 설정
       if (pastedData[0][0]) {
-        setPositionHeader(pastedData[0][0])
+        setPositionHeader(pastedData[0][0]);
       }
-      
+
       // 나머지 헤더들 설정
       if (pastedData[0].length > 1) {
-        const newHeaders = pastedData[0].slice(1)
-        setHeaders(newHeaders)
+        const newHeaders = pastedData[0].slice(1);
+        setHeaders(newHeaders);
       }
-      
+
       // 데이터 행 설정
       if (pastedData.length > 1) {
-        const newPositions = []
-        const newTableData = []
-        
+        const newPositions = [];
+        const newTableData = [];
+
         // 첫 번째 행(헤더)를 제외한 나머지 행들 처리
         for (let i = 1; i < pastedData.length; i++) {
-          const row = pastedData[i]
+          const row = pastedData[i];
           if (row.length > 0) {
-            newPositions.push(row[0] || '')  // 첫 번째 열은 positions
-            newTableData.push(row.slice(1))  // 나머지 열은 데이터
+            newPositions.push(row[0] || ""); // 첫 번째 열은 positions
+            newTableData.push(row.slice(1)); // 나머지 열은 데이터
           }
         }
-        
-        setPositions(newPositions)
-        setTableData(newTableData)
+
+        setPositions(newPositions);
+        setTableData(newTableData);
+      }
+    } else {
+      // 커서 위치부터 붙여넣기 모드
+      if (focusedCell.type === "header") {
+        // 헤더 행에 붙여넣기
+        const newHeaders = [...headers];
+        const flatData = pastedData.flat();
+
+        for (
+          let i = 0;
+          i < flatData.length && focusedCell.col + i < newHeaders.length;
+          i++
+        ) {
+          newHeaders[focusedCell.col + i] = flatData[i];
+        }
+        setHeaders(newHeaders);
+      } else if (focusedCell.type === "position") {
+        // 위치 열에 붙여넣기
+        const newPositions = [...positions];
+        const flatData = pastedData.flat();
+
+        for (
+          let i = 0;
+          i < flatData.length && focusedCell.row + i < newPositions.length;
+          i++
+        ) {
+          newPositions[focusedCell.row + i] = flatData[i];
+        }
+        setPositions(newPositions);
+      } else {
+        // 데이터 영역에 붙여넣기
+        const newTableData = [...tableData.map((row) => [...row])];
+
+        for (let i = 0; i < pastedData.length; i++) {
+          const targetRow = focusedCell.row + i;
+          if (targetRow >= newTableData.length) break;
+
+          for (let j = 0; j < pastedData[i].length; j++) {
+            const targetCol = focusedCell.col + j;
+            if (targetCol >= newTableData[targetRow].length) break;
+
+            newTableData[targetRow][targetCol] = pastedData[i][j];
+          }
+        }
+
+        setTableData(newTableData);
       }
     }
-  }
+  };
+
+  // 셀 포커스 핸들러
+  const handleCellFocus = (row, col, type) => {
+    setFocusedCell({ row, col, type });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 p-4">
@@ -345,17 +478,52 @@ export default function SizeDeviationCalculator() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  기준 열 (0부터 시작):
+                  계산 모드:
                 </label>
-                <input
-                  type="number"
-                  value={referenceColIndex}
-                  onChange={(e) => setReferenceColIndex(parseInt(e.target.value) || 0)}
+                <select
+                  value={calculationMode}
+                  onChange={(e) => setCalculationMode(e.target.value)}
                   className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
-                  min="0"
-                  max={cols - 1}
-                />
+                >
+                  <option value="column">열 기준 (좌우 차이)</option>
+                  <option value="row">행 기준 (위아래 차이)</option>
+                </select>
               </div>
+
+              {calculationMode === "column" ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    기준 열 (0부터 시작):
+                  </label>
+                  <input
+                    type="number"
+                    value={referenceColIndex}
+                    onChange={(e) =>
+                      setReferenceColIndex(parseInt(e.target.value) || 0)
+                    }
+                    className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
+                    min="0"
+                    max={cols - 1}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    기준 행 (0부터 시작):
+                  </label>
+                  <input
+                    type="number"
+                    value={referenceRowIndex}
+                    onChange={(e) =>
+                      setReferenceRowIndex(parseInt(e.target.value) || 0)
+                    }
+                    className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
+                    min="0"
+                    max={rows - 1}
+                  />
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   기준값:
@@ -363,7 +531,9 @@ export default function SizeDeviationCalculator() {
                 <input
                   type="number"
                   value={referenceValue}
-                  onChange={(e) => setReferenceValue(parseFloat(e.target.value) || 0)}
+                  onChange={(e) =>
+                    setReferenceValue(parseFloat(e.target.value) || 0)
+                  }
                   className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
                   step="0.1"
                 />
@@ -378,24 +548,57 @@ export default function SizeDeviationCalculator() {
             <h2 className="text-2xl font-bold text-gray-800">
               📊 데이터 입력 표
             </h2>
-            <button
-              onClick={calculateDeviations}
-              className="bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 px-6 rounded-lg font-bold hover:from-purple-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105"
-            >
-              편차 계산하기 ⚡
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={toggleInputTranspose}
+                className="bg-orange-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-orange-600 transition-colors"
+              >
+                행/열 뒤집기 🔄
+              </button>
+              <button
+                onClick={calculateDeviations}
+                className="bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 px-6 rounded-lg font-bold hover:from-purple-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105"
+              >
+                편차 계산하기 ⚡
+              </button>
+            </div>
           </div>
-          
+
           <div className="bg-blue-50 border border-blue-200 p-4 mb-4 rounded-lg">
             <h4 className="text-blue-800 font-bold mb-2">💡 입력 표 사용법</h4>
             <ul className="text-blue-700 text-sm space-y-1">
-              <li>• <strong>셀 우클릭:</strong> 빨간색으로 표시 (결과에서 음수 처리)</li>
-              <li>• <strong>위치명 우클릭:</strong> 1/2 처리 표시 (해당 행 전체에 1/2 곱하기)</li>
-              <li>• <strong>기준 열:</strong> 노란색으로 표시된 열이 기준점입니다</li>
+              <li>
+                • <strong>셀 우클릭:</strong> 빨간색으로 표시 (결과에서 음수
+                처리)
+              </li>
+              <li>
+                • <strong>위치명 우클릭:</strong> 1/2 처리 표시 (해당 행 전체에
+                1/2 곱하기)
+              </li>
+              <li>
+                • <strong>열 기준:</strong> 노란색으로 표시된 열이 기준점 (좌우
+                차이 계산)
+              </li>
+              <li>
+                • <strong>행 기준:</strong> 노란색으로 표시된 행이 기준점
+                (위아래 차이 계산)
+              </li>
+              <li>
+                • <strong>행/열 뒤집기:</strong> 표를 90도 회전하여 다른
+                관점에서 데이터 확인
+              </li>
+              <li>
+                • <strong>붙여넣기:</strong> 특정 셀에 포커스 후 Ctrl+V로 그
+                위치부터 붙여넣기
+              </li>
+              <li>
+                • <strong>전체 붙여넣기:</strong> 첫 번째 데이터 셀(1,1)에
+                포커스된 상태에서 헤더 포함 전체 테이블 붙여넣기
+              </li>
             </ul>
           </div>
-          
-          <div 
+
+          <div
             className="overflow-x-auto bg-white rounded-xl shadow-lg"
             onPaste={handlePaste}
             tabIndex="0" // 포커스 가능하도록
@@ -406,78 +609,198 @@ export default function SizeDeviationCalculator() {
                   <th className="bg-green-500 text-black p-3 border border-gray-300 font-bold w-48">
                     <input
                       type="text"
-                      value={positionHeader}
-                      onChange={(e) => setPositionHeader(e.target.value)}
+                      value={isInputTransposed ? "SIZE" : positionHeader}
+                      onChange={(e) => {
+                        if (isInputTransposed) {
+                          // 전치된 상태에서는 SIZE 헤더 변경 불가능하도록
+                        } else {
+                          setPositionHeader(e.target.value);
+                        }
+                      }}
+                      onFocus={() => handleCellFocus(0, 0, "positionHeader")}
                       className="w-full text-center bg-transparent border-none outline-none font-bold"
+                      readOnly={isInputTransposed}
                     />
                   </th>
-                  {headers.map((header, index) => (
-                    <th
-                      key={index}
-                      className={`p-2 border border-gray-300 font-bold ${
-                        index === referenceColIndex
-                          ? 'bg-yellow-200 text-black'
-                          : 'bg-blue-100 text-black'
-                      }`}
-                    >
-                      <input
-                        type="text"
-                        value={header}
-                        onChange={(e) => updateHeader(index, e.target.value)}
-                        className="w-full text-center bg-transparent border-none outline-none font-bold"
-                      />
-                    </th>
-                  ))}
+                  {isInputTransposed
+                    ? positions.map((position, index) => (
+                        <th
+                          key={index}
+                          className={`p-2 border border-gray-300 font-bold ${
+                            calculationMode === "row" &&
+                            index === referenceRowIndex
+                              ? "bg-yellow-200 text-black"
+                              : "bg-blue-100 text-black"
+                          }`}
+                        >
+                          <input
+                            type="text"
+                            value={position}
+                            onChange={(e) =>
+                              updatePosition(index, e.target.value)
+                            }
+                            onFocus={() => handleCellFocus(index, 0, "header")}
+                            className="w-full text-center bg-transparent border-none outline-none font-bold"
+                          />
+                        </th>
+                      ))
+                    : headers.map((header, index) => (
+                        <th
+                          key={index}
+                          className={`p-2 border border-gray-300 font-bold ${
+                            calculationMode === "column" &&
+                            index === referenceColIndex
+                              ? "bg-yellow-200 text-black"
+                              : "bg-blue-100 text-black"
+                          }`}
+                        >
+                          <input
+                            type="text"
+                            value={header}
+                            onChange={(e) =>
+                              updateHeader(index, e.target.value)
+                            }
+                            onFocus={() => handleCellFocus(0, index, "header")}
+                            className="w-full text-center bg-transparent border-none outline-none font-bold"
+                          />
+                        </th>
+                      ))}
                 </tr>
               </thead>
               <tbody>
-                {tableData.map((row, i) => (
-                  <tr key={i}>
-                    <td 
-                      className={`p-2 border border-gray-300 cursor-pointer ${
-                        halfFlags[i] ? 'bg-purple-200' : 'bg-green-100'
-                      }`}
-                      onContextMenu={(e) => {
-                        e.preventDefault()
-                        toggleHalf(i)
-                      }}
-                      title="우클릭하여 1/2 처리"
-                    >
-                      <input
-                        type="text"
-                        value={positions[i]}
-                        onChange={(e) => updatePosition(i, e.target.value)}
-                        className="w-full bg-transparent border-none outline-none font-bold text-gray-800"
-                      />
-                      {halfFlags[i] && <span className="text-purple-600 font-bold text-xs block">(1/2)</span>}
-                    </td>
-                    {row.map((value, j) => (
-                      <td
-                        key={j}
-                        className={`p-1 border border-gray-300 cursor-pointer ${
-                          j === referenceColIndex ? 'bg-yellow-50' : 
-                          negativeFlags[`${i}-${j}`] ? 'bg-red-100' : 'bg-white'
-                        }`}
-                        onContextMenu={(e) => {
-                          e.preventDefault()
-                          toggleNegative(i, j)
-                        }}
-                        title="우클릭하여 빨간색 표시 (음수 처리)"
-                      >
-                        <input
-                          type="number"
-                          value={value}
-                          onChange={(e) => updateCell(i, j, e.target.value)}
-                          className="w-full text-center border-none outline-none bg-transparent text-gray-800"
-                          step="0.1"
-                        />
-                        {negativeFlags[`${i}-${j}`] && j !== referenceColIndex && (
-                          <span className="text-red-600 font-bold text-xs block">RED</span>
-                        )}
-                      </td>
+                {isInputTransposed
+                  ? headers.map((header, i) => (
+                      <tr key={i}>
+                        <td
+                          className={`p-2 border border-gray-300 font-bold ${
+                            calculationMode === "column" &&
+                            i === referenceColIndex
+                              ? "bg-yellow-200 text-black"
+                              : "bg-green-100 text-black"
+                          }`}
+                        >
+                          <input
+                            type="text"
+                            value={header}
+                            onChange={(e) => updateHeader(i, e.target.value)}
+                            onFocus={() => handleCellFocus(i, 0, "position")}
+                            className="w-full bg-transparent border-none outline-none font-bold text-gray-800"
+                          />
+                        </td>
+                        {positions.map((_, j) => (
+                          <td
+                            key={j}
+                            className={`p-1 border border-gray-300 cursor-pointer ${
+                              (calculationMode === "column" &&
+                                i === referenceColIndex) ||
+                              (calculationMode === "row" &&
+                                j === referenceRowIndex)
+                                ? "bg-yellow-50"
+                                : negativeFlags[`${j}-${i}`]
+                                ? "bg-red-100"
+                                : "bg-white"
+                            }`}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              toggleNegative(j, i);
+                            }}
+                            title="우클릭하여 빨간색 표시 (음수 처리)"
+                          >
+                            <input
+                              type="number"
+                              value={tableData[j] ? tableData[j][i] : ""}
+                              onChange={(e) => updateCell(j, i, e.target.value)}
+                              onFocus={() => handleCellFocus(j, i, "data")}
+                              className="w-full text-center border-none outline-none bg-transparent text-gray-800"
+                              step="0.1"
+                            />
+                            {negativeFlags[`${j}-${i}`] &&
+                              !(
+                                (calculationMode === "column" &&
+                                  i === referenceColIndex) ||
+                                (calculationMode === "row" &&
+                                  j === referenceRowIndex)
+                              ) && (
+                                <span className="text-red-600 font-bold text-xs block">
+                                  RED
+                                </span>
+                              )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  : tableData.map((row, i) => (
+                      <tr key={i}>
+                        <td
+                          className={`p-2 border border-gray-300 cursor-pointer ${
+                            halfFlags[i]
+                              ? "bg-purple-200"
+                              : calculationMode === "row" &&
+                                i === referenceRowIndex
+                              ? "bg-yellow-200"
+                              : "bg-green-100"
+                          }`}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            toggleHalf(i);
+                          }}
+                          title="우클릭하여 1/2 처리"
+                        >
+                          <input
+                            type="text"
+                            value={positions[i]}
+                            onChange={(e) => updatePosition(i, e.target.value)}
+                            onFocus={() => handleCellFocus(i, 0, "position")}
+                            className="w-full bg-transparent border-none outline-none font-bold text-gray-800"
+                          />
+                          {halfFlags[i] && (
+                            <span className="text-purple-600 font-bold text-xs block">
+                              (1/2)
+                            </span>
+                          )}
+                        </td>
+                        {row.map((value, j) => (
+                          <td
+                            key={j}
+                            className={`p-1 border border-gray-300 cursor-pointer ${
+                              (calculationMode === "column" &&
+                                j === referenceColIndex) ||
+                              (calculationMode === "row" &&
+                                i === referenceRowIndex)
+                                ? "bg-yellow-50"
+                                : negativeFlags[`${i}-${j}`]
+                                ? "bg-red-100"
+                                : "bg-white"
+                            }`}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              toggleNegative(i, j);
+                            }}
+                            title="우클릭하여 빨간색 표시 (음수 처리)"
+                          >
+                            <input
+                              type="number"
+                              value={value}
+                              onChange={(e) => updateCell(i, j, e.target.value)}
+                              onFocus={() => handleCellFocus(i, j, "data")}
+                              className="w-full text-center border-none outline-none bg-transparent text-gray-800"
+                              step="0.1"
+                            />
+                            {negativeFlags[`${i}-${j}`] &&
+                              !(
+                                (calculationMode === "column" &&
+                                  j === referenceColIndex) ||
+                                (calculationMode === "row" &&
+                                  i === referenceRowIndex)
+                              ) && (
+                                <span className="text-red-600 font-bold text-xs block">
+                                  RED
+                                </span>
+                              )}
+                          </td>
+                        ))}
+                      </tr>
                     ))}
-                  </tr>
-                ))}
               </tbody>
             </table>
           </div>
@@ -488,7 +811,8 @@ export default function SizeDeviationCalculator() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-center text-gray-800">
-                📊 계산 결과
+                📊 계산 결과 (
+                {calculationMode === "column" ? "좌우 편차" : "위아래 편차"})
               </h2>
               <button
                 onClick={toggleResultTranspose}
@@ -497,19 +821,24 @@ export default function SizeDeviationCalculator() {
                 행/열 뒤집기 🔄
               </button>
             </div>
-            
+
             <div className="overflow-x-auto bg-white rounded-xl shadow-lg">
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
                     <th className="bg-green-500 text-black p-3 border border-gray-300 font-bold w-48">
-                      {isResultTransposed ? 'SIZE' : 'POSITION'}
+                      {isResultTransposed ? "SIZE" : "POSITION"}
                     </th>
-                    {isResultTransposed 
+                    {isResultTransposed
                       ? positions.map((pos, index) => (
                           <th
                             key={index}
-                            className="p-3 border border-gray-300 font-bold bg-blue-100 text-black"
+                            className={`p-3 border border-gray-300 font-bold ${
+                              calculationMode === "row" &&
+                              index === referenceRowIndex
+                                ? "bg-yellow-200 text-black"
+                                : "bg-blue-100 text-black"
+                            }`}
                           >
                             {pos}
                           </th>
@@ -518,9 +847,10 @@ export default function SizeDeviationCalculator() {
                           <th
                             key={index}
                             className={`p-3 border border-gray-300 font-bold ${
+                              calculationMode === "column" &&
                               index === referenceColIndex
-                                ? 'bg-yellow-200 text-black'
-                                : 'bg-blue-100 text-black'
+                                ? "bg-yellow-200 text-black"
+                                : "bg-blue-100 text-black"
                             }`}
                           >
                             {header}
@@ -532,21 +862,33 @@ export default function SizeDeviationCalculator() {
                   {isResultTransposed
                     ? headers.map((header, i) => (
                         <tr key={i}>
-                          <td className="bg-green-100 font-bold p-3 border border-gray-300 text-black">
+                          <td
+                            className={`font-bold p-3 border border-gray-300 text-black ${
+                              calculationMode === "column" &&
+                              i === referenceColIndex
+                                ? "bg-yellow-100"
+                                : "bg-green-100"
+                            }`}
+                          >
                             {header}
                           </td>
                           {positions.map((_, j) => (
                             <td
                               key={j}
                               className={`p-3 border border-gray-300 text-center ${
-                                i === referenceColIndex
-                                  ? 'bg-yellow-100 font-bold text-black'
+                                (calculationMode === "column" &&
+                                  i === referenceColIndex) ||
+                                (calculationMode === "row" &&
+                                  j === referenceRowIndex)
+                                  ? "bg-yellow-100 font-bold text-black"
                                   : results[j][i] < 0
-                                  ? 'text-red-600 font-bold'
-                                  : 'text-black'
+                                  ? "text-red-600 font-bold"
+                                  : "text-black"
                               }`}
                             >
-                              {typeof results[j][i] === 'number' ? results[j][i].toFixed(1) : results[j][i]}
+                              {typeof results[j][i] === "number"
+                                ? results[j][i].toFixed(1)
+                                : results[j][i]}
                             </td>
                           ))}
                         </tr>
@@ -555,25 +897,35 @@ export default function SizeDeviationCalculator() {
                         <tr key={i}>
                           <td
                             className={`font-bold p-3 border border-gray-300 text-black ${
-                              halfFlags[i] ? 'bg-purple-200' : 'bg-green-100'
+                              halfFlags[i]
+                                ? "bg-purple-200"
+                                : calculationMode === "row" &&
+                                  i === referenceRowIndex
+                                ? "bg-yellow-100"
+                                : "bg-green-100"
                             }`}
                           >
                             <span>
-                              {positions[i]} {halfFlags[i] && '(1/2)'}
+                              {positions[i]} {halfFlags[i] && "(1/2)"}
                             </span>
                           </td>
                           {row.map((value, j) => (
                             <td
                               key={j}
                               className={`p-3 border border-gray-300 text-center ${
-                                j === referenceColIndex
-                                  ? 'bg-yellow-100 font-bold text-black'
+                                (calculationMode === "column" &&
+                                  j === referenceColIndex) ||
+                                (calculationMode === "row" &&
+                                  i === referenceRowIndex)
+                                  ? "bg-yellow-100 font-bold text-black"
                                   : value < 0
-                                  ? 'text-red-600 font-bold'
-                                  : 'text-black'
+                                  ? "text-red-600 font-bold"
+                                  : "text-black"
                               }`}
                             >
-                              {typeof value === 'number' ? value.toFixed(1) : value}
+                              {typeof value === "number"
+                                ? value.toFixed(1)
+                                : value}
                             </td>
                           ))}
                         </tr>
@@ -600,5 +952,5 @@ export default function SizeDeviationCalculator() {
         )}
       </div>
     </div>
-  )
+  );
 }
