@@ -710,13 +710,14 @@ export default function SizeDeviationCalculator() {
                               (calculationMode === "row" &&
                                 j === referenceRowIndex)
                                 ? "bg-yellow-50"
-                                : negativeFlags[`${i}-${j}`]
+                                : negativeFlags[`${j}-${i}`]
                                 ? "bg-red-100"
                                 : "bg-white"
                             }`}
                             onContextMenu={(e) => {
                               e.preventDefault();
-                              toggleNegative(i, j);
+                              // 전치 상태에서는 실제 데이터 좌표 (j, i)로 저장
+                              toggleNegative(j, i);
                             }}
                             title="우클릭하여 빨간색 표시 (음수 처리)"
                           >
@@ -727,7 +728,7 @@ export default function SizeDeviationCalculator() {
                               className="w-full text-center border-none outline-none bg-transparent text-gray-800"
                               step="0.1"
                             />
-                            {negativeFlags[`${i}-${j}`] &&
+                            {negativeFlags[`${j}-${i}`] &&
                               !(
                                 (calculationMode === "column" &&
                                   i === referenceColIndex) ||
