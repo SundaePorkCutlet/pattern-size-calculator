@@ -99,92 +99,93 @@ export default function SizeDeviationCalculator() {
   };
 
   const calculateDeviations = () => {
-    if (!tableData.length) return;
+    if (!tableData.length) return
 
-    const deviations = [];
+    const deviations = []
 
     if (calculationMode === "column") {
-      // 기존 열 기준 계산 (좌우 차이)
+      // 열 기준 계산 (좌우 차이)
       for (let i = 0; i < tableData.length; i++) {
-        const rowData = tableData[i].map((val) =>
-          val === "" ? 0 : parseFloat(val) || 0
-        );
-        const deviationRow = Array(rowData.length).fill(0);
+        const rowData = tableData[i].map(val => val === '' ? 0 : parseFloat(val) || 0)
+        const deviationRow = Array(rowData.length).fill(0)
 
         // 기준점을 0으로 설정
-        deviationRow[referenceColIndex] = referenceValue;
+        deviationRow[referenceColIndex] = referenceValue
 
         // 각 열에서 인접한 열과의 절대 차이 계산
         for (let j = 0; j < rowData.length; j++) {
           if (j === referenceColIndex) {
-            deviationRow[j] = referenceValue;
+            deviationRow[j] = referenceValue
           } else if (j < referenceColIndex) {
             // 기준점 왼쪽: 현재 열과 오른쪽 인접 열의 차이
-            deviationRow[j] = Math.abs(rowData[j + 1] - rowData[j]);
+            deviationRow[j] = Math.abs(rowData[j + 1] - rowData[j])
           } else {
             // 기준점 오른쪽: 현재 열과 왼쪽 인접 열의 차이
-            deviationRow[j] = Math.abs(rowData[j] - rowData[j - 1]);
+            deviationRow[j] = Math.abs(rowData[j] - rowData[j - 1])
           }
         }
 
         // 1/2 처리
         if (halfFlags[i]) {
           for (let j = 0; j < deviationRow.length; j++) {
-            deviationRow[j] = deviationRow[j] / 2;
+            deviationRow[j] = deviationRow[j] / 2
           }
         }
 
         // 음수 처리
         for (let j = 0; j < deviationRow.length; j++) {
           if (negativeFlags[`${i}-${j}`] && j !== referenceColIndex) {
-            deviationRow[j] = -Math.abs(deviationRow[j]);
+            deviationRow[j] = -Math.abs(deviationRow[j])
           }
         }
 
-        deviations.push(deviationRow);
+        deviations.push(deviationRow)
       }
     } else {
-      // 새로운 행 기준 계산 (위아래 차이)
+      // 행 기준 계산 (위아래 차이)
       for (let i = 0; i < tableData.length; i++) {
-        const deviationRow = Array(tableData[i].length).fill(0);
+        const deviationRow = Array(tableData[i].length).fill(0)
 
         for (let j = 0; j < tableData[i].length; j++) {
           if (i === referenceRowIndex) {
-            deviationRow[j] = referenceValue;
+            deviationRow[j] = referenceValue
           } else if (i < referenceRowIndex) {
             // 기준점 위쪽: 현재 행과 아래쪽 인접 행의 차이
-            const currentValue = parseFloat(tableData[i][j]) || 0;
-            const belowValue = parseFloat(tableData[i + 1][j]) || 0;
-            deviationRow[j] = Math.abs(belowValue - currentValue);
+            const currentValue = parseFloat(tableData[i][j]) || 0
+            const belowValue = parseFloat(tableData[i + 1][j]) || 0
+            deviationRow[j] = Math.abs(belowValue - currentValue)
           } else {
             // 기준점 아래쪽: 현재 행과 위쪽 인접 행의 차이
-            const currentValue = parseFloat(tableData[i][j]) || 0;
-            const aboveValue = parseFloat(tableData[i - 1][j]) || 0;
-            deviationRow[j] = Math.abs(currentValue - aboveValue);
+            const currentValue = parseFloat(tableData[i][j]) || 0
+            const aboveValue = parseFloat(tableData[i - 1][j]) || 0
+            deviationRow[j] = Math.abs(currentValue - aboveValue)
           }
         }
 
         // 1/2 처리
         if (halfFlags[i]) {
           for (let j = 0; j < deviationRow.length; j++) {
-            deviationRow[j] = deviationRow[j] / 2;
+            deviationRow[j] = deviationRow[j] / 2
           }
         }
 
         // 음수 처리
         for (let j = 0; j < deviationRow.length; j++) {
           if (negativeFlags[`${i}-${j}`] && i !== referenceRowIndex) {
-            deviationRow[j] = -Math.abs(deviationRow[j]);
+            deviationRow[j] = -Math.abs(deviationRow[j])
           }
         }
 
-        deviations.push(deviationRow);
+        deviations.push(deviationRow)
       }
     }
 
-    setResults(deviations);
-    setShowResults(true);
-  };
+    setResults(deviations)
+    setShowResults(true)
+    
+    // 입력 테이블의 방향에 맞춰 결과 테이블 방향도 설정
+    setIsResultTransposed(isInputTransposed)
+  }
 
   const toggleNegative = (row, col) => {
     const key = `${row}-${col}`;
@@ -297,7 +298,7 @@ export default function SizeDeviationCalculator() {
             className = 'negative'
           }
           
-          htmlContent += `<td class="${className}">${typeof value === 'number' ? value.toFixed(4) : value}</td>`
+          htmlContent += `<td class="${className}">${typeof value === 'number' ? parseFloat(value.toFixed(4)) : value}</td>`
         })
         
         htmlContent += `</tr>`
@@ -315,7 +316,7 @@ export default function SizeDeviationCalculator() {
             className = 'negative'
           }
           
-          htmlContent += `<td class="${className}">${typeof value === 'number' ? value.toFixed(4) : value}</td>`
+          htmlContent += `<td class="${className}">${typeof value === 'number' ? parseFloat(value.toFixed(4)) : value}</td>`
         })
         
         htmlContent += `</tr>`
@@ -357,6 +358,9 @@ export default function SizeDeviationCalculator() {
     setIsInputTransposed(!isInputTransposed);
   };
 
+  // 입력 테이블 전치 토글 함수
+
+
   // 클립보드 붙여넣기 처리 함수 (전체 테이블용)
   const handlePaste = (e) => {
     e.preventDefault();
@@ -375,13 +379,7 @@ export default function SizeDeviationCalculator() {
     if (pastedData.length === 0) return;
 
     // 전체 테이블 붙여넣기 모드 (첫 번째 행이 헤더인 경우)
-    if (
-      focusedCell.row === 0 &&
-      focusedCell.col === 0 &&
-      focusedCell.type === "data" &&
-      pastedData.length > 1 &&
-      pastedData[0].length > 1
-    ) {
+    if (pastedData.length > 1 && pastedData[0].length > 1) {
       // 기존 전체 테이블 덮어쓰기 로직
       // 헤더의 첫 번째 셀을 POSITION 헤더로 설정
       if (pastedData[0][0]) {
@@ -450,7 +448,7 @@ export default function SizeDeviationCalculator() {
   }
 
   return (
-    <div className="min-h-screen p-4" style={{backgroundColor: '#6366f1', background: 'linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #ec4899 100%)'}}>
+    <div className="min-h-screen p-4" style={{backgroundColor: '#6366f1'}}>
       <div className="max-w-7xl mx-auto bg-white rounded-3xl p-8 shadow-2xl">
         <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
           🎯 사이즈 편차 계산기
@@ -512,42 +510,48 @@ export default function SizeDeviationCalculator() {
                   onChange={(e) => setCalculationMode(e.target.value)}
                   className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
                 >
-                  <option value="column">열 기준 (좌우 차이)</option>
-                  <option value="row">행 기준 (위아래 차이)</option>
+                  <option value="column">
+                    {isResultTransposed ? "행 기준 (세로 차이)" : "열 기준 (좌우 차이)"}
+                  </option>
+                  <option value="row">
+                    {isResultTransposed ? "열 기준 (가로 차이)" : "행 기준 (위아래 차이)"}
+                  </option>
                 </select>
               </div>
 
               {calculationMode === "column" ? (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    기준 열 (0부터 시작):
+                    기준 {isResultTransposed ? "행" : "열"} (0부터 시작):
                   </label>
                   <input
                     type="number"
                     value={referenceColIndex}
-                    onChange={(e) =>
-                      setReferenceColIndex(parseInt(e.target.value) || 0)
-                    }
+                    onChange={(e) => setReferenceColIndex(parseInt(e.target.value) || 0)}
                     className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
                     min="0"
                     max={cols - 1}
                   />
+                  <div className="text-xs text-gray-500 mt-1">
+                    현재 최대값: {cols - 1} ({isResultTransposed ? "전치된 상태" : "일반 상태"})
+                  </div>
                 </div>
               ) : (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    기준 행 (0부터 시작):
+                    기준 {isResultTransposed ? "열" : "행"} (0부터 시작):
                   </label>
                   <input
                     type="number"
                     value={referenceRowIndex}
-                    onChange={(e) =>
-                      setReferenceRowIndex(parseInt(e.target.value) || 0)
-                    }
+                    onChange={(e) => setReferenceRowIndex(parseInt(e.target.value) || 0)}
                     className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
                     min="0"
                     max={rows - 1}
                   />
+                  <div className="text-xs text-gray-500 mt-1">
+                    현재 최대값: {rows - 1} ({isResultTransposed ? "전치된 상태" : "일반 상태"})
+                  </div>
                 </div>
               )}
 
@@ -558,9 +562,7 @@ export default function SizeDeviationCalculator() {
                 <input
                   type="number"
                   value={referenceValue}
-                  onChange={(e) =>
-                    setReferenceValue(parseFloat(e.target.value) || 0)
-                  }
+                  onChange={(e) => setReferenceValue(parseFloat(e.target.value) || 0)}
                   className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
                   step="0.1"
                 />
@@ -575,37 +577,54 @@ export default function SizeDeviationCalculator() {
             <h2 className="text-2xl font-bold text-gray-800">
               📊 데이터 입력 표
             </h2>
-            <button
-              onClick={calculateDeviations}
-              className="text-white py-3 px-6 rounded-lg font-bold transition-all duration-300 transform hover:scale-105"
-              style={{backgroundColor: '#a855f7'}}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#9333ea'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#a855f7'}
-            >
-              편차 계산하기 ⚡
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={toggleInputTranspose}
+                className="bg-orange-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-orange-600 transition-colors"
+              >
+                행/열 뒤집기 🔄
+              </button>
+              <button
+                onClick={calculateDeviations}
+                className="text-white py-3 px-6 rounded-lg font-bold transition-all duration-300 transform hover:scale-105"
+                style={{backgroundColor: '#a855f7'}}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#9333ea'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#a855f7'}
+              >
+                편차 계산하기 ⚡
+              </button>
+            </div>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 p-4 mb-4 rounded-lg">
             <h4 className="text-blue-800 font-bold mb-2">💡 입력 표 사용법</h4>
             <ul className="text-blue-700 text-sm space-y-1">
               <li>• <strong>셀 우클릭:</strong> 빨간색으로 표시 (결과에서 음수 처리)</li>
-              <li>• <strong>위치명 우클릭:</strong> 1/2 처리 표시 (해당 행 전체에 1/2 곱하기)</li>
-              <li>• <strong>기준 열:</strong> 노란색으로 표시된 열이 기준점입니다</li>
+              <li>• <strong>위치명 우클릭:</strong> 1/2 처리 표시 (해당 {isResultTransposed ? "열" : "행"} 전체에 1/2 곱하기)</li>
+              <li>• <strong>기준점:</strong> 노란색으로 표시된 {calculationMode === "column" ? (isResultTransposed ? "행" : "열") : (isResultTransposed ? "열" : "행")}이 기준점입니다</li>
               <li>• <strong>데이터 붙여넣기:</strong> 특정 셀에 포커스 후 Ctrl+V로 해당 위치부터 붙여넣기</li>
               <li>• <strong>전체 테이블 붙여넣기:</strong> 테이블 바깥 영역에서 Ctrl+V로 전체 덮어쓰기</li>
+              <li>• <strong>행/열 뒤집기:</strong> 테이블의 행과 열을 서로 바꿔서 다른 관점으로 데이터 분석 가능</li>
             </ul>
           </div>
 
           <div
-            className="overflow-x-auto bg-white rounded-xl shadow-lg"
+            className="bg-white rounded-xl shadow-lg"
+            style={{
+              width: '100%',
+              overflowX: 'auto',
+              overflowY: 'visible',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#CBD5E0 #F7FAFC',
+              WebkitOverflowScrolling: 'touch'
+            }}
             onPaste={handlePaste}
             tabIndex="0" // 포커스 가능하도록
           >
-            <table className="w-full border-collapse">
+            <table className="border-collapse" style={{width: '1200px', minWidth: '1200px'}}>
               <thead>
                 <tr>
-                  <th className="bg-green-500 text-black p-3 border border-gray-300 font-bold w-48">
+                  <th className="bg-green-500 text-black p-3 border border-gray-300 font-bold" style={{width: '200px', minWidth: '200px'}}>
                     <input
                       type="text"
                       value={isInputTransposed ? "SIZE" : positionHeader}
@@ -616,7 +635,6 @@ export default function SizeDeviationCalculator() {
                           setPositionHeader(e.target.value);
                         }
                       }}
-                      onFocus={() => handleCellFocus(0, 0, "positionHeader")}
                       className="w-full text-center bg-transparent border-none outline-none font-bold"
                       readOnly={isInputTransposed}
                     />
@@ -638,7 +656,6 @@ export default function SizeDeviationCalculator() {
                             onChange={(e) =>
                               updatePosition(index, e.target.value)
                             }
-                            onFocus={() => handleCellFocus(index, 0, "header")}
                             className="w-full text-center bg-transparent border-none outline-none font-bold"
                           />
                         </th>
@@ -659,7 +676,6 @@ export default function SizeDeviationCalculator() {
                             onChange={(e) =>
                               updateHeader(index, e.target.value)
                             }
-                            onFocus={() => handleCellFocus(0, index, "header")}
                             className="w-full text-center bg-transparent border-none outline-none font-bold"
                           />
                         </th>
@@ -667,54 +683,135 @@ export default function SizeDeviationCalculator() {
                 </tr>
               </thead>
               <tbody>
-                {tableData.map((row, i) => (
-                  <tr key={i}>
-                    <td 
-                      className={`p-2 border border-gray-300 cursor-pointer ${
-                        halfFlags[i] ? 'bg-purple-200' : 'bg-green-100'
-                      }`}
-                      onContextMenu={(e) => {
-                        e.preventDefault()
-                        toggleHalf(i)
-                      }}
-                      title="우클릭하여 1/2 처리"
-                    >
-                      <input
-                        type="text"
-                        value={positions[i]}
-                        onChange={(e) => updatePosition(i, e.target.value)}
-                        className="w-full bg-transparent border-none outline-none font-bold text-gray-800"
-                      />
-                      {halfFlags[i] && <span className="text-purple-600 font-bold text-xs block">(1/2)</span>}
-                    </td>
-                    {row.map((value, j) => (
-                      <td
-                        key={j}
-                        className={`p-1 border border-gray-300 cursor-pointer ${
-                          j === referenceColIndex ? 'bg-yellow-50' : 
-                          negativeFlags[`${i}-${j}`] ? 'bg-red-100' : 'bg-white'
-                        }`}
-                        onContextMenu={(e) => {
-                          e.preventDefault()
-                          toggleNegative(i, j)
-                        }}
-                        title="우클릭하여 빨간색 표시 (음수 처리)"
-                      >
-                        <input
-                          type="number"
-                          value={value}
-                          onChange={(e) => updateCell(i, j, e.target.value)}
-                          onPaste={(e) => handleCellPaste(e, i, j)}
-                          className="w-full text-center border-none outline-none bg-transparent text-gray-800"
-                          step="0.1"
-                        />
-                        {negativeFlags[`${i}-${j}`] && j !== referenceColIndex && (
-                          <span className="text-red-600 font-bold text-xs block">RED</span>
-                        )}
-                      </td>
+                {isInputTransposed
+                  ? headers.map((header, i) => (
+                      <tr key={i}>
+                        <td
+                          className={`p-2 border border-gray-300 font-bold ${
+                            calculationMode === "column" &&
+                            i === referenceColIndex
+                              ? "bg-yellow-200 text-black"
+                              : "bg-green-100 text-black"
+                          }`}
+                        >
+                          <input
+                            type="text"
+                            value={header}
+                            onChange={(e) => updateHeader(i, e.target.value)}
+                            className="w-full bg-transparent border-none outline-none font-bold text-gray-800"
+                          />
+                        </td>
+                        {positions.map((_, j) => (
+                          <td
+                            key={j}
+                            className={`p-1 border border-gray-300 cursor-pointer ${
+                              (calculationMode === "column" &&
+                                i === referenceColIndex) ||
+                              (calculationMode === "row" &&
+                                j === referenceRowIndex)
+                                ? "bg-yellow-50"
+                                : negativeFlags[`${i}-${j}`]
+                                ? "bg-red-100"
+                                : "bg-white"
+                            }`}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              toggleNegative(i, j);
+                            }}
+                            title="우클릭하여 빨간색 표시 (음수 처리)"
+                          >
+                            <input
+                              type="number"
+                              value={tableData[j] ? tableData[j][i] : ""}
+                              onChange={(e) => updateCell(j, i, e.target.value)}
+                              className="w-full text-center border-none outline-none bg-transparent text-gray-800"
+                              step="0.1"
+                            />
+                            {negativeFlags[`${i}-${j}`] &&
+                              !(
+                                (calculationMode === "column" &&
+                                  i === referenceColIndex) ||
+                                (calculationMode === "row" &&
+                                  j === referenceRowIndex)
+                              ) && (
+                                <span className="text-red-600 font-bold text-xs block">
+                                  RED
+                                </span>
+                              )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  : tableData.map((row, i) => (
+                      <tr key={i}>
+                        <td
+                          className={`p-2 border border-gray-300 cursor-pointer ${
+                            halfFlags[i]
+                              ? "bg-purple-200"
+                              : calculationMode === "row" &&
+                                i === referenceRowIndex
+                              ? "bg-yellow-200"
+                              : "bg-green-100"
+                          }`}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            toggleHalf(i);
+                          }}
+                          title="우클릭하여 1/2 처리"
+                        >
+                          <input
+                            type="text"
+                            value={positions[i]}
+                            onChange={(e) => updatePosition(i, e.target.value)}
+                            className="w-full bg-transparent border-none outline-none font-bold text-gray-800"
+                          />
+                          {halfFlags[i] && (
+                            <span className="text-purple-600 font-bold text-xs block">
+                              (1/2)
+                            </span>
+                          )}
+                        </td>
+                        {row.map((value, j) => (
+                          <td
+                            key={j}
+                            className={`p-1 border border-gray-300 cursor-pointer ${
+                              (calculationMode === "column" &&
+                                j === referenceColIndex) ||
+                              (calculationMode === "row" &&
+                                i === referenceRowIndex)
+                                ? "bg-yellow-50"
+                                : negativeFlags[`${i}-${j}`]
+                                ? "bg-red-100"
+                                : "bg-white"
+                            }`}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              toggleNegative(i, j);
+                            }}
+                            title="우클릭하여 빨간색 표시 (음수 처리)"
+                          >
+                            <input
+                              type="number"
+                              value={value}
+                              onChange={(e) => updateCell(i, j, e.target.value)}
+                              className="w-full text-center border-none outline-none bg-transparent text-gray-800"
+                              step="0.1"
+                            />
+                            {negativeFlags[`${i}-${j}`] &&
+                              !(
+                                (calculationMode === "column" &&
+                                  j === referenceColIndex) ||
+                                (calculationMode === "row" &&
+                                  i === referenceRowIndex)
+                              ) && (
+                                <span className="text-red-600 font-bold text-xs block">
+                                  RED
+                                </span>
+                              )}
+                          </td>
+                        ))}
+                      </tr>
                     ))}
-                  </tr>
-                ))}
               </tbody>
             </table>
           </div>
@@ -725,22 +822,30 @@ export default function SizeDeviationCalculator() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-center text-gray-800">
-                📊 계산 결과 (
-                {calculationMode === "column" ? "좌우 편차" : "위아래 편차"})
+                📊 계산 결과 ({calculationMode === "column" ? "좌우 편차" : "위아래 편차"})
               </h2>
               <button
                 onClick={toggleResultTranspose}
                 className="bg-purple-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-purple-600 transition-colors"
+                title={isResultTransposed ? "원래 상태로 되돌리기" : "행과 열을 뒤집기"}
               >
-                행/열 뒤집기 🔄
+                {isResultTransposed ? "원래대로 🔄" : "행/열 뒤집기 🔄"}
               </button>
             </div>
 
-            <div className="overflow-x-auto bg-white rounded-xl shadow-lg">
-              <table className="w-full border-collapse">
+            <div 
+              className="overflow-x-auto bg-white rounded-xl shadow-lg"
+              style={{
+                maxWidth: '100%',
+                overflowX: 'auto',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#CBD5E0 #F7FAFC'
+              }}
+            >
+              <table className="border-collapse" style={{width: '1200px', minWidth: '1200px'}}>
                 <thead>
                   <tr>
-                    <th className="bg-green-500 text-black p-3 border border-gray-300 font-bold w-48">
+                    <th className="bg-green-500 text-black p-3 border border-gray-300 font-bold" style={{width: '200px', minWidth: '200px'}}>
                       {isResultTransposed ? "SIZE" : "POSITION"}
                     </th>
                     {isResultTransposed
@@ -748,8 +853,7 @@ export default function SizeDeviationCalculator() {
                           <th
                             key={index}
                             className={`p-3 border border-gray-300 font-bold ${
-                              calculationMode === "row" &&
-                              index === referenceRowIndex
+                              calculationMode === "row" && index === referenceRowIndex
                                 ? "bg-yellow-200 text-black"
                                 : "bg-blue-100 text-black"
                             }`}
@@ -761,8 +865,7 @@ export default function SizeDeviationCalculator() {
                           <th
                             key={index}
                             className={`p-3 border border-gray-300 font-bold ${
-                              calculationMode === "column" &&
-                              index === referenceColIndex
+                              calculationMode === "column" && index === referenceColIndex
                                 ? "bg-yellow-200 text-black"
                                 : "bg-blue-100 text-black"
                             }`}
@@ -778,8 +881,7 @@ export default function SizeDeviationCalculator() {
                         <tr key={i}>
                           <td
                             className={`font-bold p-3 border border-gray-300 text-black ${
-                              calculationMode === "column" &&
-                              i === referenceColIndex
+                              calculationMode === "column" && i === referenceColIndex
                                 ? "bg-yellow-100"
                                 : "bg-green-100"
                             }`}
@@ -790,17 +892,17 @@ export default function SizeDeviationCalculator() {
                             <td
                               key={j}
                               className={`p-3 border border-gray-300 text-center ${
-                                (calculationMode === "column" &&
-                                  i === referenceColIndex) ||
-                                (calculationMode === "row" &&
-                                  j === referenceRowIndex)
+                                (calculationMode === "column" && i === referenceColIndex) ||
+                                (calculationMode === "row" && j === referenceRowIndex)
                                   ? "bg-yellow-100 font-bold text-black"
                                   : results[j][i] < 0
                                   ? "text-red-600 font-bold"
                                   : "text-black"
                               }`}
                             >
-                              {typeof results[j][i] === 'number' ? results[j][i].toFixed(4) : results[j][i]}
+                              {typeof results[j][i] === "number"
+                                ? parseFloat(results[j][i].toFixed(4))
+                                : results[j][i]}
                             </td>
                           ))}
                         </tr>
@@ -809,10 +911,9 @@ export default function SizeDeviationCalculator() {
                         <tr key={i}>
                           <td
                             className={`font-bold p-3 border border-gray-300 text-black ${
-                              halfFlags[i]
-                                ? "bg-purple-200"
-                                : calculationMode === "row" &&
-                                  i === referenceRowIndex
+                              halfFlags[i] 
+                                ? "bg-purple-200" 
+                                : calculationMode === "row" && i === referenceRowIndex
                                 ? "bg-yellow-100"
                                 : "bg-green-100"
                             }`}
@@ -825,17 +926,17 @@ export default function SizeDeviationCalculator() {
                             <td
                               key={j}
                               className={`p-3 border border-gray-300 text-center ${
-                                (calculationMode === "column" &&
-                                  j === referenceColIndex) ||
-                                (calculationMode === "row" &&
-                                  i === referenceRowIndex)
+                                (calculationMode === "column" && j === referenceColIndex) ||
+                                (calculationMode === "row" && i === referenceRowIndex)
                                   ? "bg-yellow-100 font-bold text-black"
                                   : value < 0
                                   ? "text-red-600 font-bold"
                                   : "text-black"
                               }`}
                             >
-                              {typeof value === 'number' ? value.toFixed(4) : value}
+                              {typeof value === "number"
+                                ? parseFloat(value.toFixed(4))
+                                : value}
                             </td>
                           ))}
                         </tr>
