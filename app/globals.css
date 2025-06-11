@@ -25,87 +25,119 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* 윈도우 7 호환을 위한 단순 색상 덮어쓰기 */
-* {
-  background-color: inherit !important;
-  color: #000000 !important;
+/* 윈도우 7 호환을 위한 기본 색상 사용 */
+.bg-gray-50,
+.bg-blue-50 {
+  background-color: #F0F8FF !important; /* 연한 파랑 */
 }
 
-.bg-gray-50,
-.bg-blue-50,
-.bg-green-100,
-.bg-blue-100,
+.bg-green-100 {
+  background-color: #90EE90 !important; /* 연한 초록 */
+}
+
+.bg-blue-100 {
+  background-color: #ADD8E6 !important; /* 연한 파랑 */
+}
+
 .bg-yellow-50,
 .bg-yellow-100,
-.bg-yellow-200,
-.bg-purple-200,
-.bg-red-100,
-.bg-orange-500,
-.bg-blue-500,
-.bg-purple-500,
-.bg-white {
-  background-color: #f0f0f0 !important;
+.bg-yellow-200 {
+  background-color: #FFFF00 !important; /* 노랑 */
+}
+
+.bg-purple-200 {
+  background-color: #DDA0DD !important; /* 연한 보라 */
+}
+
+.bg-red-100 {
+  background-color: #FFB6C1 !important; /* 연한 빨강 */
+}
+
+.bg-orange-500 {
+  background-color: #FFA500 !important; /* 오렌지 */
+}
+
+.bg-blue-500 {
+  background-color: #0000FF !important; /* 파랑 */
+}
+
+.bg-purple-500 {
+  background-color: #800080 !important; /* 보라 */
 }
 
 .bg-green-500 {
-  background-color: #c0c0c0 !important;
+  background-color: #008000 !important; /* 초록 */
+}
+
+.bg-white {
+  background-color: #FFFFFF !important; /* 흰색 */
 }
 
 .text-gray-800,
 .text-gray-700,
-.text-gray-500,
+.text-black {
+  color: #000000 !important; /* 검정 */
+}
+
+.text-gray-500 {
+  color: #808080 !important; /* 회색 */
+}
+
 .text-blue-800,
-.text-blue-700,
-.text-black,
+.text-blue-700 {
+  color: #0000FF !important; /* 파랑 */
+}
+
 .text-white {
-  color: #000000 !important;
+  color: #FFFFFF !important; /* 흰색 */
 }
 
 .text-red-600,
 .text-red-700 {
-  color: #000000 !important;
+  color: #FF0000 !important; /* 빨강 */
   font-weight: bold !important;
 }
 
 .text-purple-600 {
-  color: #000000 !important;
+  color: #800080 !important; /* 보라 */
 }
 
-.border-gray-300,
+.border-gray-300 {
+  border-color: #C0C0C0 !important; /* 연한 회색 */
+}
+
 .border-blue-200,
-.border-green-200,
-.border-blue-400,
-.border-green-400 {
-  border-color: #000000 !important;
+.border-blue-400 {
+  border-color: #0000FF !important; /* 파랑 */
 }
 
-/* 버튼들 */
+.border-green-200,
+.border-green-400 {
+  border-color: #008000 !important; /* 초록 */
+}
+
+/* 버튼들 - 윈도우 7 스타일 */
 button {
-  background-color: #c0c0c0 !important;
+  background-color: #F0F0F0 !important;
   color: #000000 !important;
-  border: 2px solid #000000 !important;
+  border: 2px solid #808080 !important;
+  padding: 8px 16px !important;
+}
+
+button:hover {
+  background-color: #E0E0E0 !important;
 }
 
 /* 입력 필드들 */
 input, select {
-  background-color: #ffffff !important;
+  background-color: #FFFFFF !important;
   color: #000000 !important;
-  border: 2px solid #000000 !important;
+  border: 1px solid #808080 !important;
 }
 
 /* 테이블 */
 table, th, td {
-  border: 1px solid #000000 !important;
-}
-
-th {
-  background-color: #c0c0c0 !important;
-  color: #000000 !important;
-}
-
-td {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  border: 1px solid #808080 !important;
 }
 
 /* 숫자 입력 필드의 화살표 완전 제거 */
