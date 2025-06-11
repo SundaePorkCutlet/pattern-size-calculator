@@ -448,67 +448,67 @@ export default function SizeDeviationCalculator() {
   }
 
   return (
-    <div className="min-h-screen p-4" style={{backgroundColor: '#6366f1'}}>
-      <div className="max-w-7xl mx-auto bg-white rounded-3xl p-8 shadow-2xl">
-        <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
-          🎯 사이즈 편차 계산기
+    <div className="min-h-screen p-4" style={{backgroundColor: '#ffffff'}}>
+      <div className="max-w-7xl mx-auto" style={{backgroundColor: '#ffffff', border: '2px solid #000000', padding: '32px'}}>
+        <h1 style={{fontSize: '36px', fontWeight: 'bold', textAlign: 'center', color: '#000000', marginBottom: '32px'}}>
+          사이즈 편차 계산기
         </h1>
 
         {/* 설정 패널 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-gray-50 p-6 rounded-xl shadow-lg border-2 border-blue-200">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 border-b-2 border-blue-400 pb-2">
-              📐 표 크기 설정
+          <div style={{backgroundColor: '#f0f0f0', padding: '24px', border: '2px solid #000000', marginBottom: '16px'}}>
+            <h3 style={{fontSize: '18px', fontWeight: 'bold', color: '#000000', marginBottom: '16px', borderBottom: '2px solid #000000', paddingBottom: '8px'}}>
+              표 크기 설정
             </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  행 수 (Position):
-                </label>
-                <input
-                  type="number"
-                  value={rows}
-                  onChange={(e) => setRows(parseInt(e.target.value) || 1)}
-                  className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
-                  min="1"
-                  max="20"
-                />
+                          <div style={{marginBottom: '16px'}}>
+                <div style={{marginBottom: '16px'}}>
+                  <label style={{display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '4px'}}>
+                    행 수 (Position):
+                  </label>
+                  <input
+                    type="number"
+                    value={rows}
+                    onChange={(e) => setRows(parseInt(e.target.value) || 1)}
+                    style={{width: '100%', padding: '8px', border: '2px solid #000000', color: '#000000'}}
+                    min="1"
+                    max="20"
+                  />
+                </div>
+                <div style={{marginBottom: '16px'}}>
+                  <label style={{display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '4px'}}>
+                    열 수 (Size):
+                  </label>
+                  <input
+                    type="number"
+                    value={cols}
+                    onChange={(e) => setCols(parseInt(e.target.value) || 1)}
+                    style={{width: '100%', padding: '8px', border: '2px solid #000000', color: '#000000'}}
+                    min="1"
+                    max="20"
+                  />
+                </div>
+                <button
+                  onClick={updateTableSize}
+                  style={{width: '100%', backgroundColor: '#c0c0c0', color: '#000000', padding: '8px 16px', border: '2px solid #000000', fontWeight: 'bold', cursor: 'pointer'}}
+                >
+                  표 크기 적용
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  열 수 (Size):
-                </label>
-                <input
-                  type="number"
-                  value={cols}
-                  onChange={(e) => setCols(parseInt(e.target.value) || 1)}
-                  className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
-                  min="1"
-                  max="20"
-                />
-              </div>
-              <button
-                onClick={updateTableSize}
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-blue-600 transition-colors"
-              >
-                표 크기 적용
-              </button>
-            </div>
           </div>
 
-          <div className="bg-gray-50 p-6 rounded-xl shadow-lg border-2 border-green-200">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 border-b-2 border-green-400 pb-2">
-              🎯 기준점 설정
+          <div style={{backgroundColor: '#f0f0f0', padding: '24px', border: '2px solid #000000', marginBottom: '16px'}}>
+            <h3 style={{fontSize: '18px', fontWeight: 'bold', color: '#000000', marginBottom: '16px', borderBottom: '2px solid #000000', paddingBottom: '8px'}}>
+              기준점 설정
             </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div style={{marginBottom: '16px'}}>
+              <div style={{marginBottom: '16px'}}>
+                <label style={{display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '4px'}}>
                   계산 모드:
                 </label>
                 <select
                   value={calculationMode}
                   onChange={(e) => setCalculationMode(e.target.value)}
-                  className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
+                  style={{width: '100%', padding: '8px', border: '2px solid #000000', color: '#000000'}}
                 >
                   <option value="column">
                     {isResultTransposed ? "행 기준 (세로 차이)" : "열 기준 (좌우 차이)"}
@@ -520,50 +520,50 @@ export default function SizeDeviationCalculator() {
               </div>
 
               {calculationMode === "column" ? (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div style={{marginBottom: '16px'}}>
+                  <label style={{display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '4px'}}>
                     기준 {isResultTransposed ? "행" : "열"} (0부터 시작):
                   </label>
                   <input
                     type="number"
                     value={referenceColIndex}
                     onChange={(e) => setReferenceColIndex(parseInt(e.target.value) || 0)}
-                    className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
+                    style={{width: '100%', padding: '8px', border: '2px solid #000000', color: '#000000'}}
                     min="0"
                     max={cols - 1}
                   />
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div style={{fontSize: '12px', color: '#000000', marginTop: '4px'}}>
                     현재 최대값: {cols - 1} ({isResultTransposed ? "전치된 상태" : "일반 상태"})
                   </div>
                 </div>
               ) : (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div style={{marginBottom: '16px'}}>
+                  <label style={{display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '4px'}}>
                     기준 {isResultTransposed ? "열" : "행"} (0부터 시작):
                   </label>
                   <input
                     type="number"
                     value={referenceRowIndex}
                     onChange={(e) => setReferenceRowIndex(parseInt(e.target.value) || 0)}
-                    className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
+                    style={{width: '100%', padding: '8px', border: '2px solid #000000', color: '#000000'}}
                     min="0"
                     max={rows - 1}
                   />
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div style={{fontSize: '12px', color: '#000000', marginTop: '4px'}}>
                     현재 최대값: {rows - 1} ({isResultTransposed ? "전치된 상태" : "일반 상태"})
                   </div>
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div style={{marginBottom: '16px'}}>
+                <label style={{display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '4px'}}>
                   기준값:
                 </label>
                 <input
                   type="number"
                   value={referenceValue}
                   onChange={(e) => setReferenceValue(parseFloat(e.target.value) || 0)}
-                  className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800"
+                  style={{width: '100%', padding: '8px', border: '2px solid #000000', color: '#000000'}}
                   step="0.1"
                 />
               </div>
@@ -572,59 +572,54 @@ export default function SizeDeviationCalculator() {
         </div>
 
         {/* 데이터 입력 표 섹션 */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">
-              📊 데이터 입력 표
+        <div style={{marginBottom: '32px'}}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
+            <h2 style={{fontSize: '24px', fontWeight: 'bold', color: '#000000'}}>
+              데이터 입력 표
             </h2>
-            <div className="flex space-x-3">
+            <div style={{display: 'flex', gap: '12px'}}>
               <button
                 onClick={toggleInputTranspose}
-                className="bg-orange-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-orange-600 transition-colors"
+                style={{backgroundColor: '#c0c0c0', color: '#000000', padding: '8px 16px', border: '2px solid #000000', fontWeight: 'bold', cursor: 'pointer'}}
               >
-                행/열 뒤집기 🔄
+                행/열 뒤집기
               </button>
               <button
                 onClick={calculateDeviations}
-                className="text-white py-3 px-6 rounded-lg font-bold transition-all duration-300 transform hover:scale-105"
-                style={{backgroundColor: '#a855f7'}}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#9333ea'}
-                onMouseOut={(e) => e.target.style.backgroundColor = '#a855f7'}
+                style={{backgroundColor: '#c0c0c0', color: '#000000', padding: '12px 24px', border: '2px solid #000000', fontWeight: 'bold', cursor: 'pointer'}}
               >
-                편차 계산하기 ⚡
+                편차 계산하기
               </button>
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 p-4 mb-4 rounded-lg">
-            <h4 className="text-blue-800 font-bold mb-2">💡 입력 표 사용법</h4>
-            <ul className="text-blue-700 text-sm space-y-1">
-              <li>• <strong>셀 우클릭:</strong> 빨간색으로 표시 (결과에서 음수 처리)</li>
-              <li>• <strong>위치명 우클릭:</strong> 1/2 처리 표시 (해당 {isResultTransposed ? "열" : "행"} 전체에 1/2 곱하기)</li>
-              <li>• <strong>기준점:</strong> 노란색으로 표시된 {calculationMode === "column" ? (isResultTransposed ? "행" : "열") : (isResultTransposed ? "열" : "행")}이 기준점입니다</li>
-              <li>• <strong>데이터 붙여넣기:</strong> 특정 셀에 포커스 후 Ctrl+V로 해당 위치부터 붙여넣기</li>
-              <li>• <strong>전체 테이블 붙여넣기:</strong> 테이블 바깥 영역에서 Ctrl+V로 전체 덮어쓰기</li>
-              <li>• <strong>행/열 뒤집기:</strong> 테이블의 행과 열을 서로 바꿔서 다른 관점으로 데이터 분석 가능</li>
+          <div style={{backgroundColor: '#f0f0f0', border: '2px solid #000000', padding: '16px', marginBottom: '16px'}}>
+            <h4 style={{color: '#000000', fontWeight: 'bold', marginBottom: '8px'}}>입력 표 사용법</h4>
+            <ul style={{color: '#000000', fontSize: '14px', listStyle: 'none', padding: '0'}}>
+              <li style={{marginBottom: '4px'}}>• <strong>셀 우클릭:</strong> 빨간색으로 표시 (결과에서 음수 처리)</li>
+              <li style={{marginBottom: '4px'}}>• <strong>위치명 우클릭:</strong> 1/2 처리 표시 (해당 {isResultTransposed ? "열" : "행"} 전체에 1/2 곱하기)</li>
+              <li style={{marginBottom: '4px'}}>• <strong>기준점:</strong> 회색으로 표시된 {calculationMode === "column" ? (isResultTransposed ? "행" : "열") : (isResultTransposed ? "열" : "행")}이 기준점입니다</li>
+              <li style={{marginBottom: '4px'}}>• <strong>데이터 붙여넣기:</strong> 특정 셀에 포커스 후 Ctrl+V로 해당 위치부터 붙여넣기</li>
+              <li style={{marginBottom: '4px'}}>• <strong>전체 테이블 붙여넣기:</strong> 테이블 바깥 영역에서 Ctrl+V로 전체 덮어쓰기</li>
+              <li style={{marginBottom: '4px'}}>• <strong>행/열 뒤집기:</strong> 테이블의 행과 열을 서로 바꿔서 다른 관점으로 데이터 분석 가능</li>
             </ul>
           </div>
 
           <div
-            className="bg-white rounded-xl shadow-lg"
             style={{
               width: '100%',
               overflowX: 'auto',
               overflowY: 'visible',
-              scrollbarWidth: 'thin',
-              scrollbarColor: '#CBD5E0 #F7FAFC',
-              WebkitOverflowScrolling: 'touch'
+              backgroundColor: '#ffffff',
+              border: '2px solid #000000'
             }}
             onPaste={handlePaste}
             tabIndex="0" // 포커스 가능하도록
           >
-            <table className="border-collapse" style={{width: '1200px', minWidth: '1200px'}}>
+            <table style={{borderCollapse: 'collapse', width: '1200px', minWidth: '1200px'}}>
               <thead>
                 <tr>
-                  <th className="bg-green-500 text-black p-3 border border-gray-300 font-bold" style={{width: '200px', minWidth: '200px'}}>
+                  <th style={{backgroundColor: '#c0c0c0', color: '#000000', padding: '12px', border: '1px solid #000000', fontWeight: 'bold', width: '200px', minWidth: '200px'}}>
                     <input
                       type="text"
                       value={isInputTransposed ? "SIZE" : positionHeader}
@@ -635,7 +630,7 @@ export default function SizeDeviationCalculator() {
                           setPositionHeader(e.target.value);
                         }
                       }}
-                      className="w-full text-center bg-transparent border-none outline-none font-bold"
+                      style={{width: '100%', textAlign: 'center', background: 'transparent', border: 'none', outline: 'none', fontWeight: 'bold', color: '#000000'}}
                       readOnly={isInputTransposed}
                     />
                   </th>
@@ -643,12 +638,13 @@ export default function SizeDeviationCalculator() {
                     ? positions.map((position, index) => (
                         <th
                           key={index}
-                          className={`p-2 border border-gray-300 font-bold ${
-                            calculationMode === "row" &&
-                            index === referenceRowIndex
-                              ? "bg-yellow-200 text-black"
-                              : "bg-blue-100 text-black"
-                          }`}
+                          style={{
+                            padding: '8px', 
+                            border: '1px solid #000000', 
+                            fontWeight: 'bold',
+                            backgroundColor: calculationMode === "row" && index === referenceRowIndex ? '#d0d0d0' : '#e0e0e0',
+                            color: '#000000'
+                          }}
                         >
                           <input
                             type="text"
@@ -656,7 +652,7 @@ export default function SizeDeviationCalculator() {
                             onChange={(e) =>
                               updatePosition(index, e.target.value)
                             }
-                            className="w-full text-center bg-transparent border-none outline-none font-bold"
+                            style={{width: '100%', textAlign: 'center', background: 'transparent', border: 'none', outline: 'none', fontWeight: 'bold', color: '#000000'}}
                           />
                         </th>
                       ))
